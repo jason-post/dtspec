@@ -4,6 +4,8 @@ import random
 import uuid
 import json
 import copy
+import datetime
+from dateutil import parser
 
 from types import SimpleNamespace
 
@@ -119,18 +121,20 @@ class UniqueIdGenerator:  # pylint: disable=too-few-public-methods
       #=> ['S6', 'S5', 'S3', 'S1', 'S4', 'S7', 'S9', 'S2', 'S8', 'S16']
     """
 
-    def __init__(self, fmt=int):
+    def __init__(self, fmt=int, incr=False):
         self.fmt = fmt
         self.size = 1
+        self.incr = incr
         self.gen_sample()
 
     def gen_sample(self):
         self.sample = list(range(10 ** (self.size - 1), 10 ** self.size))
-        random.shuffle(self.sample)
+        if not self.incr:
+            random.shuffle(self.sample)
         self.size += 1
 
     def __next__(self):
-        i = self.sample.pop()
+        i = self.sample.pop(0)
         if len(self.sample) == 0:
             self.gen_sample()
         return self.fmt(i)
@@ -153,6 +157,13 @@ class IdGenerators:
     @staticmethod
     def uuid():
         return lambda: str(uuid.uuid4())
+
+    @staticmethod
+    def incrementing_datetime(start_iso="2000-01-01T01:02:03", incr_ms=24*60*60*1000):
+        return UniqueIdGenerator(
+            lambda i: (parser.isoparse(start_iso) + datetime.timedelta(milliseconds=incr_ms*(i-1))).isoformat(' '),
+            incr=True
+        )
 
 
 class UnableToFindNamedIdError(Exception):
