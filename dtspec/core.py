@@ -121,15 +121,15 @@ class UniqueIdGenerator:  # pylint: disable=too-few-public-methods
       #=> ['S6', 'S5', 'S3', 'S1', 'S4', 'S7', 'S9', 'S2', 'S8', 'S16']
     """
 
-    def __init__(self, fmt=int, incr=False):
+    def __init__(self, fmt=int, shuffle=True):
         self.fmt = fmt
         self.size = 1
-        self.incr = incr
+        self.shuffle = shuffle
         self.gen_sample()
 
     def gen_sample(self):
         self.sample = list(range(10 ** (self.size - 1), 10 ** self.size))
-        if not self.incr:
+        if not self.shuffle:
             random.shuffle(self.sample)
         self.size += 1
 
@@ -162,7 +162,7 @@ class IdGenerators:
     def incrementing_datetime(start_iso="2000-01-01T01:02:03", incr_ms=24*60*60*1000):
         return UniqueIdGenerator(
             lambda i: (parser.isoparse(start_iso) + datetime.timedelta(milliseconds=incr_ms*(i-1))).isoformat(' '),
-            incr=True
+            shuffle=False
         )
 
 
